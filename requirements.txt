@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+
+langgraph
+langchain-core
+langchain-groq
+
+sqlalchemy
+psycopg[binary]        
+pydantic
+pydantic-settings
+
+google-api-python-client==2.154.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+streamlit==1.41.1
