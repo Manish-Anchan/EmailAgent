@@ -1,4 +1,4 @@
-# ✉️ Email Agent — AI-Powered Email Automation
+# ✉️ Email Agent - AI-Powered Email Automation
 
 An intelligent email automation system that processes incoming Gmail messages using an AI agent pipeline. Built with **LangGraph**, **FastAPI**, **Streamlit**, **PostgreSQL**, and **Groq (Llama 3.3)**, the system classifies customer intent, retrieves conversation history, generates context-aware draft replies, and supports human-in-the-loop approval before sending.
 
@@ -6,14 +6,14 @@ An intelligent email automation system that processes incoming Gmail messages us
 
 ## ✨ Features
 
-- **Automated Email Ingestion** — Fetches the latest unread email from Gmail via Composio's managed Gmail integration.
-- **LLM-Powered Intent Classification** — Categorises emails by intent (`question`, `bug`, `billing`, `feature`, `complex`, `notification`) and urgency (`low` → `critical`) using structured output.
-- **Conditional Routing** — LangGraph `Command`-based routing directs the workflow through bug tracking, history retrieval, or straight to human review depending on classification.
-- **Conversation History** — Retrieves up to 5 previous emails from the same sender (PostgreSQL) to give the LLM historical context when drafting replies.
-- **Context-Aware Response Generation** — Drafts professional, empathetic replies grounded in the email content, classification, and sender history.
-- **Human-in-the-Loop Review** — Uses LangGraph `interrupt` / `resume` to pause the pipeline for human approval or rejection before any email is sent.
-- **One-Click Send** — Approved replies are dispatched via Composio, maintaining thread continuity.
-- **Streamlit Dashboard** — A polished, dark-themed UI with a step-by-step wizard (Fetch → Review → Send) and real-time session state.
+- **Automated Email Ingestion** - Fetches the latest unread email from Gmail via Composio's managed Gmail integration.
+- **LLM-Powered Intent Classification** - Categorises emails by intent (`question`, `bug`, `billing`, `feature`, `complex`, `notification`) and urgency (`low` → `critical`) using structured output.
+- **Conditional Routing** - LangGraph `Command`-based routing directs the workflow through bug tracking, history retrieval, or straight to human review depending on classification.
+- **Conversation History** - Retrieves up to 5 previous emails from the same sender (PostgreSQL) to give the LLM historical context when drafting replies.
+- **Context-Aware Response Generation** - Drafts professional, empathetic replies grounded in the email content, classification, and sender history.
+- **Human-in-the-Loop Review** - Uses LangGraph `interrupt` / `resume` to pause the pipeline for human approval or rejection before any email is sent.
+- **One-Click Send** - Approved replies are dispatched via Composio, maintaining thread continuity.
+- **Streamlit Dashboard** - A polished, dark-themed UI with a step-by-step wizard (Fetch → Review → Send) and real-time session state.
 
 ---
 
