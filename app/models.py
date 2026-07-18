@@ -23,6 +23,7 @@ class EmailHistory(Base):
 
     subject = Column(Text)
     content = Column(Text)
+    draft_response = Column(Text)
 
     direction = Column(String(10), nullable=False)
 

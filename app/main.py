@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from app.router.gmail_router import router as agent_router
 from .database import engine
-from .import models
+from . import models
 
-models.Base.metadata.create_all(bind = engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Email Agent API"
+    title="Email Agent API",
+    description="Multi-user AI email agent powered by Composio & LangGraph",
+    version="2.0.0",
 )
 
 app.include_router(agent_router)

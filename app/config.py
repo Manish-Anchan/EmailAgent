@@ -3,7 +3,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_name: str
     groq_api_key: str
-    
+
+    composio_api_key: str
+
     database_hostname: str
     database_port: str
     database_password: str

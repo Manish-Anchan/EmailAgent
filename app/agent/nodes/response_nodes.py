@@ -100,7 +100,7 @@ def draft_response(state: EmailAgentState) -> Command[Literal["human_review", "_
     goto = "human_review" if needs_review else END
 
     return Command(
-        update={"draft_response": response.content},  # Store only the raw response
+        update={"draft_response": response.content},  
         goto=goto
     )
 
@@ -120,11 +120,15 @@ def human_review(state: EmailAgentState) -> Command[Literal["__end__"]]:
     })
 
     if human_decision.get("approved"):
+        edited = human_decision.get("edited_response")
+        update_dict = {}
+        if edited:
+            update_dict["draft_response"] = edited
         return Command(
-            update={},
+            update=update_dict,
             goto=END
         )
     else:
 
-        return Command(update={}, goto=END)
+        return Command(update={"draft_response": None}, goto=END)
 

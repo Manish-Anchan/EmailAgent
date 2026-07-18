@@ -1,62 +1,53 @@
-from .get_gmail_service import get_gmail_service
-import base64
+from .get_gmail_service import composio_client
 
-def get_latest_email():
-    service = get_gmail_service()
 
-    results = service.users().messages().list(
-        userId="me",
-        labelIds=["INBOX"],
-        maxResults=1
-    ).execute()
+def get_latest_email(user_id: str) -> dict | None:
+    """
+    Returns the most recent email from the user's inbox,
+    or None if there are no emails.
+    """
+    try:
+        result = composio_client.tools.execute(
+            slug="GMAIL_FETCH_EMAILS",
+            arguments={
+                "query": "in:inbox",       
+                "max_results": 1,
+            },
+            user_id=user_id,
+            version="20260702_01",
+        )
+    except Exception as e:
+        raise Exception(f"Composio GMAIL_FETCH_EMAILS failed: {e}")
 
-    messages = results.get("messages", [])
+
+    data = result if isinstance(result, dict) else {}
+
+    if hasattr(result, 'data'):
+        data = result.data if isinstance(result.data, dict) else {}
+    elif hasattr(result, 'to_dict'):
+        data = result.to_dict()
+
+    messages = data.get("messages", []) or data.get("data", {}).get("messages", [])
 
     if not messages:
         return None
 
-    msg_id = messages[0]["id"]
-    try:
-        msg_data = service.users().messages().get(
-            userId="me",
-            id=msg_id
-        ).execute()
-    except Exception as e:
-        raise Exception(
-            f"Unable to read email: {str(e)}"
-        )
-    print("Message ID:", msg_data["id"])
-    print("Thread ID:", msg_data["threadId"])
 
-    payload = msg_data["payload"]
+    msg = messages[0]
 
-    sender = ""
-    subject = ""
+    sender  = msg.get("sender") or msg.get("from") or msg.get("From", "")
+    subject = msg.get("subject") or msg.get("Subject", "")
+    body    = msg.get("messageText") or msg.get("body") or msg.get("snippet") or msg.get("messageBody") or msg.get("preview", "")
+    msg_id  = msg.get("id") or msg.get("messageId", "")
+    thread_id = msg.get("threadId") or msg.get("thread_id") or msg_id
 
-    for h in payload["headers"]:
-        if h["name"] == "From":
-            sender = h["value"]
-
-        if h["name"] == "Subject":
-            subject = h["value"]
-
-    body = ""
-
-    if "parts" in payload:
-        for part in payload["parts"]:
-            if part["mimeType"] == "text/plain":
-                data = part["body"].get("data")
-
-                if data:
-                    body = base64.urlsafe_b64decode(
-                        data
-                    ).decode("utf-8")
-                    break
+    print("Message ID:", msg_id)
+    print("Thread ID:", thread_id)
 
     return {
         "id": msg_id,
         "sender": sender,
-        "thread_id": msg_data["threadId"],
+        "thread_id": thread_id,
         "subject": subject,
-        "body": body
+        "body": body,
     }

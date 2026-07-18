@@ -9,6 +9,7 @@ class EmailClassification(TypedDict):
 
 
 class EmailAgentState(TypedDict):
+    user_id: str          
     email_content: str
     sender_email: str
     email_id: str

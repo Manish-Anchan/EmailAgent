@@ -1,29 +1,34 @@
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
+from composio import Composio
+from app.config import settings
 
-import os
-import pickle
+composio_client = Composio(api_key=settings.composio_api_key)
 
-
-SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
+_gmail_auth_config_id = None
 
 
-def get_gmail_service():
-    creds = None
+def get_gmail_auth_config_id() -> str:
+    """
+    Get or create a Composio-managed Gmail auth config.
+    Cached after first call — only hits the API once.
+    """
+    global _gmail_auth_config_id
 
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
+    if _gmail_auth_config_id:
+        return _gmail_auth_config_id
 
-    if not creds or not creds.valid:
-        flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials.json",
-            SCOPES
-        )
+    # Check if one already exists
+    configs = composio_client.auth_configs.list(toolkit_slug="gmail")
+    if configs.items:
+        _gmail_auth_config_id = configs.items[0].id
+        return _gmail_auth_config_id
 
-        creds = flow.run_local_server(port=0)
-
-        with open("token.pickle", "wb") as token:
-            pickle.dump(creds, token)
-
-    return build("gmail", "v1", credentials=creds)
+    # Create one with Composio-managed OAuth
+    config = composio_client.auth_configs.create(
+        toolkit="gmail",
+        options={
+            "type": "use_composio_managed_auth",
+            "name": "gmail-oauth",
+        },
+    )
+    _gmail_auth_config_id = config.id
+    return _gmail_auth_config_id

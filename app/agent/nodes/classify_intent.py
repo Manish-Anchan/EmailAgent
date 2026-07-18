@@ -6,7 +6,7 @@ from ...services.llm_service import get_llm
 
 
 
-def classify_intent(state: EmailAgentState) -> Command[Literal["human_review", "fetch_email_history", "bug_tracking"]]:
+def classify_intent(state: EmailAgentState) -> Command[Literal["fetch_email_history", "bug_tracking"]]:
     """Use LLM to classify email intent and urgency, then route accordingly"""
     
     llm = get_llm()
@@ -33,9 +33,7 @@ def classify_intent(state: EmailAgentState) -> Command[Literal["human_review", "
         }
 
 
-    if classification['intent'] == 'billing' or classification['urgency'] == 'critical':
-        goto = "human_review"
-    elif classification['intent'] == 'bug':
+    if classification['intent'] == 'bug':
         goto = "bug_tracking"
     else:
         goto = "fetch_email_history"

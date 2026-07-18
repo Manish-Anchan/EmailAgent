@@ -62,15 +62,15 @@ An intelligent email automation system that processes incoming Gmail messages us
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | Streamlit |
-| **Backend API** | FastAPI, Uvicorn |
-| **Agent Framework** | LangGraph, LangChain |
-| **LLM Provider** | Groq — `llama-3.3-70b-versatile` |
-| **Database** | PostgreSQL, SQLAlchemy |
-| **Email Integration** | Gmail API (OAuth 2.0) |
-| **Config** | Pydantic Settings, `.env` |
+| Layer                       | Technology                         |
+| --------------------------- | ---------------------------------- |
+| **Frontend**          | Streamlit                          |
+| **Backend API**       | FastAPI, Uvicorn                   |
+| **Agent Framework**   | LangGraph, LangChain               |
+| **LLM Provider**      | Groq —`llama-3.3-70b-versatile` |
+| **Database**          | PostgreSQL, SQLAlchemy             |
+| **Email Integration** | Gmail API (OAuth 2.0)              |
+| **Config**            | Pydantic Settings,`.env`         |
 
 ---
 
@@ -190,21 +190,21 @@ uvicorn app.main:app --reload
 streamlit run app/app.py
 ```
 
-| Service | URL |
-|---|---|
+| Service                | URL                                                     |
+| ---------------------- | ------------------------------------------------------- |
 | FastAPI Docs (Swagger) | [http://localhost:8000/docs](http://localhost:8000/docs) |
-| Streamlit Dashboard | [http://localhost:8501](http://localhost:8501) |
+| Streamlit Dashboard    | [http://localhost:8501](http://localhost:8501)           |
 
 ---
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Health check |
+| Method   | Endpoint                  | Description                                              |
+| -------- | ------------------------- | -------------------------------------------------------- |
+| `GET`  | `/`                     | Health check                                             |
 | `POST` | `/agent/process-latest` | Fetch the latest unread email and run the agent pipeline |
-| `POST` | `/agent/review` | Submit human review decision (approve / reject) |
-| `POST` | `/agent/send` | Send the approved draft reply via Gmail |
+| `POST` | `/agent/review`         | Submit human review decision (approve / reject)          |
+| `POST` | `/agent/send`           | Send the approved draft reply via Gmail                  |
 
 ### Request Schemas
 
@@ -232,17 +232,17 @@ streamlit run app/app.py
 
 **`email_history`**
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | UUID | Primary key (auto-generated) |
-| `email_id` | VARCHAR(255) | Unique Gmail message ID |
-| `thread_id` | VARCHAR(255) | Gmail thread ID |
-| `sender_email` | VARCHAR(255) | Sender address |
-| `recipient` | VARCHAR(255) | Recipient address |
-| `subject` | TEXT | Email subject |
-| `content` | TEXT | Email body |
-| `direction` | VARCHAR(10) | `inbound` or `outbound` |
-| `timestamp` | TIMESTAMP(tz) | Defaults to `now()` |
+| Column           | Type          | Notes                        |
+| ---------------- | ------------- | ---------------------------- |
+| `id`           | UUID          | Primary key (auto-generated) |
+| `email_id`     | VARCHAR(255)  | Unique Gmail message ID      |
+| `thread_id`    | VARCHAR(255)  | Gmail thread ID              |
+| `sender_email` | VARCHAR(255)  | Sender address               |
+| `recipient`    | VARCHAR(255)  | Recipient address            |
+| `subject`      | TEXT          | Email subject                |
+| `content`      | TEXT          | Email body                   |
+| `direction`    | VARCHAR(10)   | `inbound` or `outbound`  |
+| `timestamp`    | TIMESTAMP(tz) | Defaults to`now()`         |
 
 ---
 

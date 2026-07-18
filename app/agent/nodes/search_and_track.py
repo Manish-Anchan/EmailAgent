@@ -6,15 +6,11 @@ import uuid
 
 
 
-def bug_tracking(state: EmailAgentState) -> Command[Literal["draft_response"]]:
+def bug_tracking(state: EmailAgentState):
     """Create or update bug tracking ticket"""
 
 
     ticket_id = f"BUG-{str(uuid.uuid4())[:8]}" 
-    return Command(
-        update={
-            "search_results": [f"Bug ticket {ticket_id} created"],
-            "current_step": "bug_tracked"
-        },
-        goto="draft_response"
-    )
+    return {
+        "search_results": [f"Bug ticket {ticket_id} created"],
+    }
