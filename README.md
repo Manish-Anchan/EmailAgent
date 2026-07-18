@@ -6,56 +6,65 @@ An intelligent email automation system that processes incoming Gmail messages us
 
 ## ✨ Features
 
-- **Automated Email Ingestion** — Fetches the latest unread email from Gmail via the Gmail API.
+- **Automated Email Ingestion** — Fetches the latest unread email from Gmail via Composio's managed Gmail integration.
 - **LLM-Powered Intent Classification** — Categorises emails by intent (`question`, `bug`, `billing`, `feature`, `complex`, `notification`) and urgency (`low` → `critical`) using structured output.
 - **Conditional Routing** — LangGraph `Command`-based routing directs the workflow through bug tracking, history retrieval, or straight to human review depending on classification.
 - **Conversation History** — Retrieves up to 5 previous emails from the same sender (PostgreSQL) to give the LLM historical context when drafting replies.
 - **Context-Aware Response Generation** — Drafts professional, empathetic replies grounded in the email content, classification, and sender history.
 - **Human-in-the-Loop Review** — Uses LangGraph `interrupt` / `resume` to pause the pipeline for human approval or rejection before any email is sent.
-- **One-Click Send** — Approved replies are dispatched via the Gmail API, maintaining thread continuity.
+- **One-Click Send** — Approved replies are dispatched via Composio, maintaining thread continuity.
 - **Streamlit Dashboard** — A polished, dark-themed UI with a step-by-step wizard (Fetch → Review → Send) and real-time session state.
 
 ---
 
+**Live Demo:** [https://email-agent-1.streamlit.app/](https://email-agent-1.streamlit.app/)
+
 ## 🔄 Agent Workflow
 
-```
+```text
               ┌──────────────────┐
-              │  Incoming Email   │
+              │  Incoming Email  │
               └────────┬─────────┘
                        │
               ┌────────▼─────────┐
-              │ Classify Intent   │
-              │  (LLM Structured) │
+              │ Classify Intent  │
+              │ (LLM Structured) │
               └────────┬─────────┘
                        │
-          ┌────────────┼────────────┐
-          │            │            │
-   billing/critical    bug       other intents
-          │            │            │
-          ▼            ▼            ▼
-   ┌────────────┐ ┌──────────┐ ┌──────────────────┐
-   │Human Review│ │Bug Track │ │Fetch Email History│
-   └────────────┘ └────┬─────┘ └────────┬─────────┘
-                       │                │
-                       ▼                ▼
-                  ┌──────────────────────────┐
-                  │    Draft Response (LLM)   │
-                  └────────────┬─────────────┘
-                               │
-                     high urgency / complex?
-                        ┌──────┴──────┐
-                        │ yes         │ no
-                        ▼             ▼
-                 ┌────────────┐   ┌───────┐
-                 │Human Review│   │  END  │
-                 │ (interrupt)│   └───────┘
-                 └──────┬─────┘
-                        │ resume
-                        ▼
-                     ┌───────┐
-                     │  END  │
-                     └───────┘
+           ┌───────────┴───────────┐
+           │                       │
+      Intent = bug            Other Intents
+           │                       │
+           ▼                       │
+    ┌─────────────┐                │
+    │ Bug Track   │                │
+    └──────┬──────┘                │
+           │                       │
+           └───────────┬───────────┘
+                       │
+                       ▼
+            ┌───────────────────┐
+            │Fetch Email History│
+            └──────────┬────────┘
+                       │
+                       ▼
+              ┌────────────────┐
+              │ Draft Response │
+              │ (LLM Generates)│
+              └────────┬───────┘
+                       │
+             high urgency / complex?
+              ┌────────┴────────┐
+              │ yes             │ no
+              ▼                 │
+      ┌────────────────┐        │
+      │  Human Review  │        │
+      │ (Approve/Edit) │        │
+      └───────┬────────┘        │
+              │                 │
+              └────────┬────────┘
+                       ▼
+                     [END]
 ```
 
 ---
@@ -69,7 +78,7 @@ An intelligent email automation system that processes incoming Gmail messages us
 | **Agent Framework**   | LangGraph, LangChain               |
 | **LLM Provider**      | Groq —`llama-3.3-70b-versatile` |
 | **Database**          | PostgreSQL, SQLAlchemy             |
-| **Email Integration** | Gmail API (OAuth 2.0)              |
+| **Email Integration** | Composio Managed OAuth             |
 | **Config**            | Pydantic Settings,`.env`         |
 
 ---
@@ -88,7 +97,7 @@ EmailAgent/
 │   │       ├── response_nodes.py    # Draft response generation + human review interrupt
 │   │       └── search_and_track.py  # Bug ticket creation
 │   ├── gmail/
-│   │   ├── get_gmail_service.py     # Gmail API OAuth2 service builder
+│   │   ├── get_gmail_service.py     # Composio authentication & Gmail client
 │   │   ├── get_mail.py              # Fetch latest unread email
 │   │   ├── send_mail.py             # Send reply via Gmail
 │   │   └── extract_email.py         # Extract email address from sender string
@@ -104,8 +113,9 @@ EmailAgent/
 │   ├── main.py                      # FastAPI app entry point
 │   ├── models.py                    # SQLAlchemy ORM models (EmailHistory)
 │   └── schemas.py                   # Pydantic request/response schemas
-├── credentials.json                 # Gmail API OAuth credentials (gitignored)
-├── token.pickle                     # Gmail OAuth token cache (gitignored)
+├── docker-compose.yml               # Multi-container orchestration
+├── Dockerfile.backend               # Backend container configuration
+├── Dockerfile.frontend              # Frontend container configuration
 ├── requirements.txt
 ├── .env                             # Environment variables (gitignored)
 └── .gitignore
@@ -117,10 +127,9 @@ EmailAgent/
 
 ### Prerequisites
 
-- Python 3.11+
-- PostgreSQL running locally
-- A Google Cloud project with the Gmail API enabled and OAuth credentials downloaded as `credentials.json`
-- A Groq API key
+- **Docker** and **Docker Compose** installed on your machine
+- A **Composio API Key** (for managing Gmail authentication)
+- A **Groq API Key** (for the LLM)
 
 ### 1. Clone the Repository
 
@@ -129,65 +138,26 @@ git clone https://github.com/Manish-Anchan/EmailAgent.git
 cd EmailAgent
 ```
 
-### 2. Create a Virtual Environment
+### 2. Environment Setup
 
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Linux / macOS
-# .venv\Scripts\activate         # Windows
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Set Up PostgreSQL
-
-Create a database for the project:
-
-```sql
-CREATE DATABASE "EmailAgent";
-```
-
-> Tables are auto-created on first run via SQLAlchemy `create_all`.
-
-### 5. Configure Environment Variables
-
-Create a `.env` file in the project root:
+Create a `.env` file in the root directory:
 
 ```env
-GROQ_API_KEY=your_groq_api_key
-MODEL_NAME=llama-3.3-70b-versatile
+GROQ_API_KEY=your_groq_api_key_here
+COMPOSIO_API_KEY=your_composio_api_key_here
 
-DATABASE_HOSTNAME=localhost
-DATABASE_PORT=5432
+# Optional: Database credentials (defaults provided in docker-compose)
 DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=your_password
+DATABASE_PASSWORD=your_secure_password
 DATABASE_NAME=EmailAgent
 ```
 
-### 6. Set Up Gmail API Credentials
+### 3. Run with Docker
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Enable the **Gmail API**.
-3. Create OAuth 2.0 credentials (Desktop App).
-4. Download the credentials file and save it as `credentials.json` in the project root.
-5. On first run, a browser window will open for OAuth consent — this generates `token.pickle` for subsequent runs.
-
-### 7. Run the Application
-
-**Start the FastAPI backend:**
+The easiest way to run the entire stack (Database, Backend, and Frontend) is using Docker Compose:
 
 ```bash
-uvicorn app.main:app --reload
-```
-
-**Start the Streamlit frontend** (in a separate terminal):
-
-```bash
-streamlit run app/app.py
+docker compose up --build
 ```
 
 | Service                | URL                                                     |
@@ -241,6 +211,7 @@ streamlit run app/app.py
 | `recipient`    | VARCHAR(255)  | Recipient address            |
 | `subject`      | TEXT          | Email subject                |
 | `content`      | TEXT          | Email body                   |
+| `draft_response`| TEXT         | LLM-generated draft          |
 | `direction`    | VARCHAR(10)   | `inbound` or `outbound`  |
 | `timestamp`    | TIMESTAMP(tz) | Defaults to`now()`         |
 
@@ -249,10 +220,8 @@ streamlit run app/app.py
 ## 🔮 Future Improvements
 
 - Persistent LangGraph checkpoints with PostgresSaver
-- Multi-user / multi-inbox support
 - Email analytics and monitoring dashboard
 - Batch email processing
-- Cloud deployment (Railway / Render / AWS)
 
 ---
 
